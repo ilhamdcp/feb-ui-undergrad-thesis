@@ -8,7 +8,7 @@ Each excel report containing balance sheet and ownership information to be parse
 
 ## Output
 The output will be generated into `output.xlsx` which contains excel file with multiple sheets.
-Those sheets include *Total  Asset*, *Financial Asset* and *Institutional Ownership History*.
+Those sheets include _Total  Asset_, _Financial Asset_ and _Institutional Ownership History_.
 
 ## How to run
 1. execute `python -m venv env`
