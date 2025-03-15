@@ -23,12 +23,15 @@ asset_keys = {}
 def list_files_in_current_folder():
     """Lists all files in the current folder."""
     try:
-        files = [f for f in os.listdir('.') if os.path.isfile(f)]
+        absolute_path = os.path.abspath('KOMPAS100 Report')
+        files = [
+            os.path.join('KOMPAS100 Report', f)
+            for f in os.listdir(absolute_path)
+            if os.path.isfile(os.path.join(absolute_path, f))
+        ]        
         return files
     except OSError as e:
         print(f"Error accessing directory: {e}")
-
-list_files_in_current_folder()
 
 def containsExcludedKeyword(account):
     for keyword in excludedKeywords:
@@ -77,14 +80,6 @@ def listAccounts():
                         asset_keys[df.iloc[i, 0]].append(ticker)
                     else:
                         asset_keys[df.iloc[i, 0]] = [ticker]
-        
-    # for i in sorted([x for x in asset_keys]):
-    #     print(i,"->", asset_keys[i])
-    #     print()
-    #     print()
-    #     print()
-        
-    # print(len(asset_keys))
 
 yearHeaderIdentifier = "Recommended: S&P Capital IQ - Standard"
 header = ["Fiscal Quarter"]
@@ -107,6 +102,7 @@ def writeAllAssetsToFormattedExcel(workbook: openpyxl.Workbook, excelFiles: list
     for file in sorted(excelFiles):
         if file.endswith(".xls") or file.endswith(".xlsx") and "output" not in file:
             df = pd.read_excel(file, sheet_name="Balance Sheet")
+            df.fillna(0, inplace=True)
             ticker = df.iloc[1, 0].split(" (MI KEY")[0]
             data.append([ticker])
             for i in range(0, len(df)):
@@ -140,6 +136,7 @@ def writeTotalAssetsToFormattedExcel(workbook: openpyxl.Workbook, excelFiles: li
     for file in excelFiles:
         if file.endswith(".xls") or file.endswith(".xlsx") and "output" not in file:
             df = pd.read_excel(file, sheet_name="Balance Sheet")
+            df.fillna(0, inplace=True)
             ticker = df.iloc[1, 0].split(" (MI KEY")[0]
         for i in range(0, len(df)):
             identifier = str(df.iloc[i, 0])
@@ -162,6 +159,7 @@ def writeFinancialAssetsToFormattedExcel(workbook: openpyxl.Workbook, excelFiles
         print(file)
         if file.endswith(".xls") or file.endswith(".xlsx") and "output" not in file:
             df = pd.read_excel(file, sheet_name="Balance Sheet")
+            df.fillna(0, inplace=True)
             ticker = df.iloc[1, 0].split(" (MI KEY")[0]
         for i in range(0, len(df)):
             identifier = str(df.iloc[i, 0])
@@ -191,4 +189,3 @@ writeAllAssetsToFormattedExcel(workbook, excel_files)
 writeTotalAssetsToFormattedExcel(workbook, excel_files)
 writeFinancialAssetsToFormattedExcel(workbook, excel_files)
 workbook.save("output.xlsx")
-
