@@ -17,6 +17,34 @@ includedKeywords = {"forsale", "forsale", "financialasset", "contractasset", "sw
 
 includedKeywords2 = {"receivable", "securities", "investment", "forsale", "security", "derivative", "sale"}
 includedKeywords3 = {"totalreceivables", "accountsreceivablelongterm", "loansreceivablelongterm", "longterminvestments", "shortterminvestments", "tradingassetsecurities", "totalassets"}
+bumn = [
+    'IDX:BMRI',
+    'IDX:BBNI',
+    'IDX:BBRI',
+    'IDX:BBTN',
+    'IDX:BRIS',
+    'IDX:BJBR',
+    'IDX:BEKS',
+    'IDX:BJTM',
+    'IDX:PGAS',
+    'IDX:PTBA',
+    'IDX:ELSA',
+    'IDX:TLKM',
+    'IDX:MTEL',
+    'IDX:JSMR',
+    'IDX:PTPP',
+    'IDX:PPRO',
+    'IDX:WIKA',
+    'IDX:ADHI',
+    'IDX:TINS',
+    'IDX:ANTM',
+    'IDX:SMGR',
+    'IDX:SMBR',
+    'IDX:KRAS',
+    'IDX:WSBP',
+    'IDX:KAEF',
+    'IDX:INAF',
+]
 
 asset_keys = {}
 
@@ -181,6 +209,34 @@ def writeFinancialAssetsToFormattedExcel(workbook: openpyxl.Workbook, excelFiles
     add_column_from_array(sheet, header)
     for ticker in sorted(tickerToTotalAssetDict):
         add_column_from_array(sheet, tickerToTotalAssetDict[ticker])
+        
+def writeInstitutionalOwnershipHistoryToFormattedExcel(workbook: openpyxl.Workbook, excelFiles):
+    tickerToInstitutionalOwnershipHistory = {}
+    for file in sorted(excelFiles):
+        if file.endswith(".xls") or file.endswith(".xlsx") and "output" not in file:
+            df = pd.read_excel(file, sheet_name="Institutional Ownership")
+            df.fillna(0, inplace=True)
+            ticker = df.iloc[1, 0].split(" (MI KEY")[0]
+        for i in range(0, len(df)):
+            identifier = str(df.iloc[i, 0])
+            if identifier == yearHeaderIdentifier and len(header) == 1:
+                for j in range(1, len(df.iloc[i])):
+                    header.append(df.iloc[i,j])
+            if identifier == 'Total Assets':
+                break
+            if identifier in asset_keys:
+                columnData = tickerToInstitutionalOwnershipHistory[ticker] if ticker in tickerToInstitutionalOwnershipHistory else [ticker]
+                if len(columnData) == 1:
+                    for j in range(1, len(df.iloc[i])):
+                        columnData.append(df.iloc[i,j])
+                else:
+                    for j in range(1, len(df.iloc[i])):
+                        columnData[j] = columnData[j] + df.iloc[i,j]
+                tickerToInstitutionalOwnershipHistory[ticker] = columnData
+    sheet = workbook.create_sheet("Institutional Ownership")
+    add_column_from_array(sheet, header)
+    for ticker in sorted(tickerToInstitutionalOwnershipHistory):
+        add_column_from_array(sheet, tickerToInstitutionalOwnershipHistory[ticker])
     
     
 listAccounts()
