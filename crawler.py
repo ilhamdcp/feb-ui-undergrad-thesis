@@ -47,6 +47,8 @@ bumn = [
 ]
 
 asset_keys = {}
+yearHeaderIdentifier = "Recommended: S&P Capital IQ - Standard"
+header = ["Fiscal Quarter"]
 
 def list_files_in_current_folder():
     """Lists all files in the current folder."""
@@ -55,8 +57,8 @@ def list_files_in_current_folder():
         files = [
             os.path.join('KOMPAS100 Report', f)
             for f in os.listdir(absolute_path)
-            if os.path.isfile(os.path.join(absolute_path, f))
-        ]        
+            if os.path.isfile(os.path.join(absolute_path, f)) and (f.endswith(".xls") or f.endswith(".xlsx"))
+        ]  
         return files
     except OSError as e:
         print(f"Error accessing directory: {e}")
@@ -108,10 +110,6 @@ def listAccounts():
                         asset_keys[df.iloc[i, 0]].append(ticker)
                     else:
                         asset_keys[df.iloc[i, 0]] = [ticker]
-
-yearHeaderIdentifier = "Recommended: S&P Capital IQ - Standard"
-header = ["Fiscal Quarter"]
-excel_files = list_files_in_current_folder()
 
 def add_row_from_array(sheet, row_data, skipRow = 1):
     row_num = sheet.max_row + skipRow
@@ -237,8 +235,17 @@ def writeInstitutionalOwnershipHistoryToFormattedExcel(workbook: openpyxl.Workbo
     add_column_from_array(sheet, header)
     for ticker in sorted(tickerToInstitutionalOwnershipHistory):
         add_column_from_array(sheet, tickerToInstitutionalOwnershipHistory[ticker])
-    
-    
+
+
+
+
+excel_files = list_files_in_current_folder()
+for file in sorted(excel_files):
+    print(file)
+    df = pd.read_excel(file, sheet_name="Balance Sheet")
+    ticker = df.iloc[1, 0].split(" (MI KEY")[0]
+    renameFile(file, "KOMPAS100 Report/{}.xls".format(ticker))
+
 listAccounts()
 workbook = openpyxl.Workbook()
 writeAllAssetsToFormattedExcel(workbook, excel_files)
