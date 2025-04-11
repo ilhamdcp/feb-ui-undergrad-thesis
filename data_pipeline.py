@@ -49,6 +49,7 @@ bumn = [
 asset_keys = {}
 yearHeaderIdentifier = "Recommended: S&P Capital IQ - Standard"
 header = ["Fiscal Quarter"]
+numOfQuarters = 59 #number of quarter from 2010 to 2024
 
 def list_files_in_current_folder():
     """Lists all files in the current folder."""
@@ -182,7 +183,6 @@ def writeTotalAssetsToFormattedExcel(workbook: openpyxl.Workbook, excelFiles: li
 def writeFinancialAssetsToFormattedExcel(workbook: openpyxl.Workbook, excelFiles):
     tickerToTotalAssetDict = {}
     for file in sorted(excelFiles):
-        print(file)
         if file.endswith(".xls") or file.endswith(".xlsx") and "output" not in file:
             df = pd.read_excel(file, sheet_name="Balance Sheet")
             df.fillna(0, inplace=True)
@@ -208,28 +208,24 @@ def writeFinancialAssetsToFormattedExcel(workbook: openpyxl.Workbook, excelFiles
     for ticker in sorted(tickerToTotalAssetDict):
         add_column_from_array(sheet, tickerToTotalAssetDict[ticker])
         
-def writeInstitutionalOwnershipHistoryToFormattedExcel(workbook: openpyxl.Workbook, excelFiles):
+def writeInstitutionalOwnershipHistoryToFormattedExcel(workbook: openpyxl.Workbook, excelFiles, numOfQuarters):
     tickerToInstitutionalOwnershipHistory = {}
     for file in sorted(excelFiles):
+        isStartWrite = False
         if file.endswith(".xls") or file.endswith(".xlsx") and "output" not in file:
-            df = pd.read_excel(file, sheet_name="Institutional Ownership")
+            df = pd.read_excel(file, sheet_name="Ownership History")
             df.fillna(0, inplace=True)
             ticker = df.iloc[1, 0].split(" (MI KEY")[0]
+        tickerToInstitutionalOwnershipHistory[ticker] = [ticker] + [0] * numOfQuarters
         for i in range(0, len(df)):
-            identifier = str(df.iloc[i, 0])
-            if identifier == yearHeaderIdentifier and len(header) == 1:
-                for j in range(1, len(df.iloc[i])):
-                    header.append(df.iloc[i,j])
-            if identifier == 'Total Assets':
-                break
-            if identifier in asset_keys:
-                columnData = tickerToInstitutionalOwnershipHistory[ticker] if ticker in tickerToInstitutionalOwnershipHistory else [ticker]
-                if len(columnData) == 1:
-                    for j in range(1, len(df.iloc[i])):
-                        columnData.append(df.iloc[i,j])
-                else:
-                    for j in range(1, len(df.iloc[i])):
-                        columnData[j] = columnData[j] + df.iloc[i,j]
+            if df.iloc[i, 0] == 'Holder':
+                isStartWrite = True
+            elif isStartWrite:
+                columnData = tickerToInstitutionalOwnershipHistory[ticker]
+                temp = 1
+                for j in range(len(df.iloc[i])-3, 1, -1):
+                    columnData[temp] = columnData[temp] + float(df.iloc[i,j])
+                    temp += 1
                 tickerToInstitutionalOwnershipHistory[ticker] = columnData
     sheet = workbook.create_sheet("Institutional Ownership")
     add_column_from_array(sheet, header)
@@ -238,17 +234,18 @@ def writeInstitutionalOwnershipHistoryToFormattedExcel(workbook: openpyxl.Workbo
 
 
 
-
+# UNCOMMENT this to rename the file names that are generated from CapitalIQ
 excel_files = list_files_in_current_folder()
-for file in sorted(excel_files):
-    print(file)
-    df = pd.read_excel(file, sheet_name="Balance Sheet")
-    ticker = df.iloc[1, 0].split(" (MI KEY")[0]
-    renameFile(file, "KOMPAS100 Report/{}.xls".format(ticker))
+# for file in sorted(excel_files):
+#     print(file)
+#     df = pd.read_excel(file, sheet_name="Balance Sheet")
+#     ticker = df.iloc[1, 0].split(" (MI KEY")[0]
+#     renameFile(file, "KOMPAS100 Report/{}.xls".format(ticker))
 
-listAccounts()
 workbook = openpyxl.Workbook()
+listAccounts()
 writeAllAssetsToFormattedExcel(workbook, excel_files)
 writeTotalAssetsToFormattedExcel(workbook, excel_files)
 writeFinancialAssetsToFormattedExcel(workbook, excel_files)
+writeInstitutionalOwnershipHistoryToFormattedExcel(workbook, excel_files, numOfQuarters)
 workbook.save("output.xlsx")
