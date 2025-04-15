@@ -234,20 +234,32 @@ def writeInstitutionalOwnershipHistoryToFormattedExcel(workbook: openpyxl.Workbo
     for ticker in sorted(tickerToInstitutionalOwnershipHistory):
         add_column_from_array(sheet, tickerToInstitutionalOwnershipHistory[ticker])
     sheet.delete_cols(1)
+    
+def reshapeOutput(output: str, excelFileNames: list[str]):
+    entityNames = [x.replace(".xls", "").replace("KOMPAS100 Report/", "") for x in excelFileNames]
+    financialAsset = pd.read_excel(output, sheet_name="Financial Asset")
+    financialAsset = pd.melt(financialAsset, id_vars= "Fiscal Quarter", value_vars=entityNames)
+    
+    institutionalOwnership = pd.read_excel(output, sheet_name="Insitutional Ownership")
+    institutionalOwnership = pd.melt(institutionalOwnership, id_vars= "Fiscal Quarter", value_vars=entityNames)
 
 
 excel_files = list_files_in_current_folder()
-# UNCOMMENT this to rename the file names that are generated from CapitalIQ
+# pipeline 0
 # for file in sorted(excel_files):
 #     print(file)
 #     df = pd.read_excel(file, sheet_name="Balance Sheet")
 #     ticker = df.iloc[1, 0].split(" (MI KEY")[0]
 #     renameFile(file, "KOMPAS100 Report/{}.xls".format(ticker))
 
-workbook = openpyxl.Workbook()
-listAccounts()
-writeAllAssetsToFormattedExcel(workbook, excel_files)
-writeTotalAssetsToFormattedExcel(workbook, excel_files)
-writeFinancialAssetsToFormattedExcel(workbook, excel_files)
-writeInstitutionalOwnershipHistoryToFormattedExcel(workbook, excel_files, numOfQuarters)
-workbook.save("output.xlsx")
+# pipeline 1
+# workbook = openpyxl.Workbook()
+# listAccounts()
+# writeAllAssetsToFormattedExcel(workbook, excel_files)
+# writeTotalAssetsToFormattedExcel(workbook, excel_files)
+# writeFinancialAssetsToFormattedExcel(workbook, excel_files)
+# writeInstitutionalOwnershipHistoryToFormattedExcel(workbook, excel_files, numOfQuarters)
+# workbook.save("output.xlsx")
+
+# pipeline 2
+reshapeOutput("output.xlsx", excel_files)
