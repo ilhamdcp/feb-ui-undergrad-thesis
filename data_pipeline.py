@@ -179,6 +179,7 @@ def writeTotalAssetsToFormattedExcel(workbook: openpyxl.Workbook, excelFiles: li
     add_column_from_array(sheet, header)
     for ticker in sorted(tickerToTotalAssetDict):
         add_column_from_array(sheet, tickerToTotalAssetDict[ticker])
+    sheet.delete_cols(1)
                 
 def writeFinancialAssetsToFormattedExcel(workbook: openpyxl.Workbook, excelFiles):
     tickerToTotalAssetDict = {}
@@ -207,6 +208,7 @@ def writeFinancialAssetsToFormattedExcel(workbook: openpyxl.Workbook, excelFiles
     add_column_from_array(sheet, header)
     for ticker in sorted(tickerToTotalAssetDict):
         add_column_from_array(sheet, tickerToTotalAssetDict[ticker])
+    sheet.delete_cols(1)
         
 def writeInstitutionalOwnershipHistoryToFormattedExcel(workbook: openpyxl.Workbook, excelFiles, numOfQuarters):
     tickerToInstitutionalOwnershipHistory = {}
@@ -231,11 +233,11 @@ def writeInstitutionalOwnershipHistoryToFormattedExcel(workbook: openpyxl.Workbo
     add_column_from_array(sheet, header)
     for ticker in sorted(tickerToInstitutionalOwnershipHistory):
         add_column_from_array(sheet, tickerToInstitutionalOwnershipHistory[ticker])
+    sheet.delete_cols(1)
 
 
-
-# UNCOMMENT this to rename the file names that are generated from CapitalIQ
 excel_files = list_files_in_current_folder()
+# UNCOMMENT this to rename the file names that are generated from CapitalIQ
 # for file in sorted(excel_files):
 #     print(file)
 #     df = pd.read_excel(file, sheet_name="Balance Sheet")
