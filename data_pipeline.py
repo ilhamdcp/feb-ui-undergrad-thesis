@@ -279,7 +279,7 @@ def writeROAToFormattedExcel(workbook: openpyxl.Workbook, excelFiles: list[str])
     sheet.delete_cols(1)
 
 excel_files = list_files_in_current_folder()
-# UNCOMMENT this to rename the file names that are generated from CapitalIQ
+# pipeline 0
 # for file in sorted(excel_files):
 #     print(file)
 #     df = pd.read_excel(file, sheet_name="Balance Sheet")
