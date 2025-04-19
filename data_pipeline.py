@@ -166,7 +166,7 @@ def writeTotalAssetsToFormattedExcel(workbook: openpyxl.Workbook, excelFiles: li
             df.fillna(0, inplace=True)
             ticker = df.iloc[1, 0].split(" (MI KEY")[0]
         for i in range(0, len(df)):
-            identifier = str(df.iloc[i, 0])
+            identifier = str(df.iloc[i, 0]).strip()
             if identifier == yearHeaderIdentifier and len(header) == 1:
                 for j in range(1, len(df.iloc[i])):
                     header.append(df.iloc[i,j])
@@ -235,6 +235,48 @@ def writeInstitutionalOwnershipHistoryToFormattedExcel(workbook: openpyxl.Workbo
         add_column_from_array(sheet, tickerToInstitutionalOwnershipHistory[ticker])
     sheet.delete_cols(1)
 
+def writeIsStateOwnedToFormattedExcel(workbook: openpyxl.Workbook, excelFiles, numOfQuarters: int):
+    tickerStateOwnedDummyVars = []
+    for file in sorted(excelFiles):
+        if file.endswith(".xls") or file.endswith(".xlsx") and "output" not in file:
+            df = pd.read_excel(file, sheet_name="Ownership History")
+            df.fillna(0, inplace=True)
+            ticker = df.iloc[1, 0].split(" (MI KEY")[0]
+            colData = [ticker]
+            if ticker in bumn:
+                colData += [1] * numOfQuarters
+            else:
+                colData += [0] * numOfQuarters
+            tickerStateOwnedDummyVars.append(colData)
+
+    sheet = workbook.create_sheet("State Owned")
+    add_column_from_array(sheet, header)
+    for ticker in tickerStateOwnedDummyVars:
+        add_column_from_array(sheet, ticker)
+    sheet.delete_cols(1)
+
+def writeROAToFormattedExcel(workbook: openpyxl.Workbook, excelFiles: list[str]):
+    tickers = []
+    for file in sorted(excelFiles):
+        if file.endswith(".xls") or file.endswith(".xlsx") and "output" not in file:
+            df = pd.read_excel(file, sheet_name="Ownership History")
+            df.fillna(0, inplace=True)
+            ticker = df.iloc[1, 0].split(" (MI KEY")[0]
+            tickers.append(ticker)
+    df = pd.read_excel("Financial Data/ROA.xlsx")
+    df.fillna(0)
+    roas = [[df.iloc[3,i][3:] + " " + df.iloc[3,i][0:3] for i in range(5, len(df.iloc[3]))]]
+    roas[0].insert(0, "Fiscal Quarter")
+    for i in range(4, len(df)):
+        row = df.iloc[i]
+        if row.iloc[4] in tickers:
+            companyROA = [row.iloc[4]]
+            companyROA += [row.iloc[i] for i in range (5, len(row))]
+            roas.append(companyROA)
+    sheet = workbook.create_sheet("ROA")
+    for roa in roas:
+        add_column_from_array(sheet, roa)
+    sheet.delete_cols(1)
 
 excel_files = list_files_in_current_folder()
 # UNCOMMENT this to rename the file names that are generated from CapitalIQ
@@ -250,4 +292,6 @@ writeAllAssetsToFormattedExcel(workbook, excel_files)
 writeTotalAssetsToFormattedExcel(workbook, excel_files)
 writeFinancialAssetsToFormattedExcel(workbook, excel_files)
 writeInstitutionalOwnershipHistoryToFormattedExcel(workbook, excel_files, numOfQuarters)
+writeIsStateOwnedToFormattedExcel(workbook, excel_files, numOfQuarters)
+writeROAToFormattedExcel(workbook, excel_files)
 workbook.save("output.xlsx")
